@@ -61,18 +61,18 @@ jobs:
         REPO_URL: https://github.com/project-openwrt/openwrt
         REPO_BRANCH: openwrt-18.06
       run: |
-        git clone --depth 1 $REPO_URL -b $REPO_BRANCH openwrt
-        cd openwrt
+        git clone --depth 1 $REPO_URL -b $REPO_BRANCH ctc
+        cd ctc
         sed -i '5s/#//' feeds.conf.default
         
     - name: 更新 & 安装 feeds
-      working-directory: ./openwrt
+      working-directory: ./ctc
       run: |
         ./scripts/feeds update -a
         ./scripts/feeds install -a
 
     - name: 自定义安装源
-      working-directory: ./openwrt
+      working-directory: ./ctc
       run: |
         git clone https://github.com/kenzok8/litte package/litte
 
@@ -80,9 +80,9 @@ jobs:
       env:
         CONFIG_FILE: 'ctc.config'
       run: |
-        [ -e $CONFIG_FILE ] && mv $CONFIG_FILE openwrt/.config
+        [ -e $CONFIG_FILE ] && mv $CONFIG_FILE ctc/.config
         chmod +x ./customize.sh && ./customize.sh
-        cd openwrt && rm -rf package/lienol/luci-app-passwall && rm -rf package/ctcgfw/luci-app-jd-dailybonus
+        cd ctc && rm -rf package/lienol/luci-app-passwall && rm -rf package/ctcgfw/luci-app-jd-dailybonus
         rm -rf package/lean/luci-app-ssr-plus && rm -rf package/ntlf9t/luci-app-clash && rm -rf package/ctcgfw/node-request && rm -rf package/ctcgfw/naiveproxy
         rm -rf package/litte/microsocks && rm -rf package/litte/redsocks2 && rm -rf package/litte/tcpping
         rm -rf package/ntlf9t/AdGuardHome && rm -rf package/ctcgfw/luci-app-adguardhome
@@ -98,14 +98,14 @@ jobs:
         
 
     - name: 下载包文件
-      working-directory: ./openwrt
+      working-directory: ./ctc
       run: |
         make download -j$(nproc)
         find dl -size -1024c -exec ls -l {} \;
         find dl -size -1024c -exec rm -f {} \;
 
     - name: 编译固件
-      working-directory: ./openwrt
+      working-directory: ./ctc
       run: |
         echo -e "$(nproc) thread build."
         make -j$(nproc) V=s
@@ -114,4 +114,4 @@ jobs:
       uses: actions/upload-artifact@main
       with:
         name: ctc
-        path: openwrt/bin
+        path: ctc/bin
